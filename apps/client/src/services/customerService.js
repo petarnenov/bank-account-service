@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -47,6 +47,15 @@ class CustomerService {
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to fetch customers');
+        }
+    }
+
+    static async getActiveCustomers() {
+        try {
+            const response = await api.get('/customers/active');
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch active customers');
         }
     }
 
