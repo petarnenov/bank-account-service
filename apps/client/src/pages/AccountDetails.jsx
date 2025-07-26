@@ -45,7 +45,7 @@ const AccountDetails = () => {
                 <h2>Account Details</h2>
                 <div className="detail-row">
                     <label>Account Number:</label>
-                    <span>{account.accountNumber}</span>
+                    <span className="account-number">{account.accountNumber}</span>
                 </div>
                 <div className="detail-row">
                     <label>Account Type:</label>
