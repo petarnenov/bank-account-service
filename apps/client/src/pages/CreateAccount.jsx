@@ -1,10 +1,12 @@
 import React from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, useSearchParams} from 'react-router-dom';
 import AccountForm from '../components/AccountForm';
 import AccountService from '../services/accountService';
 
 const CreateAccount = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const customerId = searchParams.get('customerId');
 
     const handleCreateAccount = async (accountData) => {
         try {
@@ -15,6 +17,9 @@ const CreateAccount = () => {
         }
     };
 
+    // Prepare initial data if customerId is provided
+    const initialData = customerId ? {customerId} : {};
+
     return (
         <div className="create-account">
             <button onClick={() => navigate(-1)} className="back-btn">
@@ -22,7 +27,11 @@ const CreateAccount = () => {
             </button>
 
             <h2>Create New Account</h2>
-            <AccountForm onSubmit={handleCreateAccount} />
+            <AccountForm
+                onSubmit={handleCreateAccount}
+                initialData={initialData}
+                isCustomerPreSelected={!!customerId}
+            />
         </div>
     );
 };
