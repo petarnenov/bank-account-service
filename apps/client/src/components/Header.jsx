@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link, useNavigate} from 'react-router-dom';
+import {Link, useNavigate, NavLink} from 'react-router-dom';
 import {useAuth} from '../contexts/AuthContext';
 
 const Header = () => {
@@ -43,8 +43,8 @@ const Header = () => {
                         </>
                     ) : (
                         <div className="auth-links">
-                            <Link to="/login" className="nav-link">Login</Link>
-                            <Link to="/register" className="nav-link register-link">Register</Link>
+                            <NavLink to="/login" className={({isActive}) => `nav-link${isActive ? ' active' : ''}`}>Login</NavLink>
+                            <NavLink to="/register" className={({isActive}) => `nav-link register-link${isActive ? ' active' : ''}`}>Register</NavLink>
                         </div>
                     )}
                 </nav>
