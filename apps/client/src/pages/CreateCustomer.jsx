@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
 import CustomerService from '../services/customerService';
 
 const CreateCustomer = () => {
@@ -10,10 +10,11 @@ const CreateCustomer = () => {
         phone: '',
         address: '',
         dateOfBirth: '',
+        status: 'active',
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    
+
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -53,7 +54,7 @@ const CreateCustomer = () => {
             });
 
             await CustomerService.createCustomer(customerData);
-            
+
             // Redirect to customers list or dashboard on success
             navigate('/customers');
         } catch (err) {
@@ -71,13 +72,13 @@ const CreateCustomer = () => {
         <div className="create-customer-container">
             <div className="create-customer-form">
                 <h2>Create New Customer</h2>
-                
+
                 {error && (
                     <div className="error-message">
                         {error}
                     </div>
                 )}
-                
+
                 <form onSubmit={handleSubmit}>
                     <div className="form-row">
                         <div className="form-group">
@@ -92,7 +93,7 @@ const CreateCustomer = () => {
                                 placeholder="Enter first name"
                             />
                         </div>
-                        
+
                         <div className="form-group">
                             <label htmlFor="lastName">Last Name *</label>
                             <input
@@ -106,7 +107,7 @@ const CreateCustomer = () => {
                             />
                         </div>
                     </div>
-                    
+
                     <div className="form-group">
                         <label htmlFor="email">Email Address *</label>
                         <input
@@ -119,7 +120,7 @@ const CreateCustomer = () => {
                             placeholder="Enter email address"
                         />
                     </div>
-                    
+
                     <div className="form-group">
                         <label htmlFor="phone">Phone Number</label>
                         <input
@@ -131,7 +132,7 @@ const CreateCustomer = () => {
                             placeholder="Enter phone number"
                         />
                     </div>
-                    
+
                     <div className="form-group">
                         <label htmlFor="address">Address</label>
                         <textarea
@@ -143,7 +144,7 @@ const CreateCustomer = () => {
                             rows="3"
                         />
                     </div>
-                    
+
                     <div className="form-group">
                         <label htmlFor="dateOfBirth">Date of Birth</label>
                         <input
@@ -154,17 +155,31 @@ const CreateCustomer = () => {
                             onChange={handleChange}
                         />
                     </div>
-                    
+
+                    <div className="form-group">
+                        <label htmlFor="status">Status</label>
+                        <select
+                            id="status"
+                            name="status"
+                            value={formData.status}
+                            onChange={handleChange}
+                            required
+                        >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+
                     <div className="form-actions">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             onClick={handleCancel}
                             className="cancel-button"
                         >
                             Cancel
                         </button>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             className="submit-button"
                             disabled={loading}
                         >
