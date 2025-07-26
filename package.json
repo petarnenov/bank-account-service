@@ -1,0 +1,34 @@
+{
+  "name": "account-service-monorepo",
+  "version": "1.0.0",
+  "description": "Bank Account Service - Full Stack Application",
+  "private": true,
+  "workspaces": [
+    "apps/client",
+    "apps/server"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "npm run start --workspace=apps/client",
+    "dev:server": "npm run dev --workspace=apps/server",
+    "build": "npm run build --workspace=apps/client",
+    "start": "npm run start --workspace=apps/server",
+    "test": "npm run test --workspaces",
+    "lint": "eslint apps/*/src --ext .js,.jsx",
+    "clean": "rm -rf node_modules apps/*/node_modules apps/*/build apps/*/dist"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react": "^7.33.0",
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.11.0"
+  }
+}

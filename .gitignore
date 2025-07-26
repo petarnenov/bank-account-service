@@ -1,0 +1,81 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+apps/server/.env
+apps/client/.env
+
+# Build outputs
+build/
+dist/
+apps/client/build/
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Migration and test files
+run-*.js
+test-*.js
+verify-*.js
+check-*.js
+create-default-*.js
+
+# Backup files
+*.bak
+*.backup
+
+# Package manager files
+package-lock.json
+yarn.lock
+
+# Next.js (if applicable)
+.next/
+
+# Misc
+.cache/
+.npm
