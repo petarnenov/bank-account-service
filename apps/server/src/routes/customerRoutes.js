@@ -6,6 +6,9 @@ const router = express.Router();
 // Get all customers
 router.get('/', CustomerController.getAllCustomers);
 
+// Get active customers only
+router.get('/active', CustomerController.getActiveCustomers);
+
 // Create new customer
 router.post('/', CustomerController.createCustomer);
 

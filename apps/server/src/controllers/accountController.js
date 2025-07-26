@@ -15,7 +15,7 @@ class AccountController {
 
     static async createAccount(req, res) {
         try {
-            let {accountType, balance, currency, customerId} = req.body;
+            let {accountType, balance, currency, customerId, status = 'active'} = req.body;
 
             // Validate required fields
             if (!accountType || !customerId) {
@@ -44,7 +44,7 @@ class AccountController {
                 return res.status(500).json({error: 'Unable to generate unique account number'});
             }
 
-            const account = await Account.createAccount(accountNumber, accountType, balance, currency, customerId);
+            const account = await Account.createAccount(accountNumber, accountType, balance, currency, customerId, status);
             res.status(201).json(account);
         } catch (error) {
             if (error.code === '23505') { // PostgreSQL unique constraint violation

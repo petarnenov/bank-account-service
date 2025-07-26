@@ -4,8 +4,8 @@ const Customer = require('../models/Customer');
 class CustomerController {
     static async createCustomer(req, res) {
         try {
-            const {firstName, lastName, email, phone, address, dateOfBirth} = req.body;
-            const customer = await Customer.createCustomer(firstName, lastName, email, phone, address, dateOfBirth);
+            const {firstName, lastName, email, phone, address, dateOfBirth, status = 'active'} = req.body;
+            const customer = await Customer.createCustomer(firstName, lastName, email, phone, address, dateOfBirth, status);
             res.status(201).json(customer);
         } catch (error) {
             res.status(500).json({error: error.message});
@@ -28,6 +28,15 @@ class CustomerController {
     static async getAllCustomers(req, res) {
         try {
             const customers = await Customer.getAllCustomers();
+            res.json(customers);
+        } catch (error) {
+            res.status(500).json({error: error.message});
+        }
+    }
+
+    static async getActiveCustomers(req, res) {
+        try {
+            const customers = await Customer.getActiveCustomers();
             res.json(customers);
         } catch (error) {
             res.status(500).json({error: error.message});
