@@ -35,7 +35,10 @@ app.use('/api/accounts', authenticateToken, accountRoutes);
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../../client/build')));
-    app.get('*', (req, res) => {
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api/')) {
+            return res.status(404).json({error: 'API route not found'});
+        }
         res.sendFile(path.join(__dirname, '../../client/build', 'index.html'));
     });
 }
