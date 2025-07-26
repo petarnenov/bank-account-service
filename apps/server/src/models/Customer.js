@@ -11,7 +11,7 @@ const pool = new Pool({
 });
 
 class Customer {
-    constructor(id, firstName, lastName, email, phone, address, dateOfBirth, createdAt, updatedAt) {
+    constructor(id, firstName, lastName, email, phone, address, dateOfBirth, status, createdAt, updatedAt) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -19,6 +19,7 @@ class Customer {
         this.phone = phone;
         this.address = address;
         this.dateOfBirth = dateOfBirth;
+        this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -35,7 +36,7 @@ class Customer {
         return customerId.substring(0, 20);
     }
 
-    static async createCustomer(firstName, lastName, email, phone, address, dateOfBirth) {
+    static async createCustomer(firstName, lastName, email, phone, address, dateOfBirth, status = 'active') {
         // Auto-generate a unique customer ID
         let customerId = Customer.generateCustomerId();
 
@@ -59,40 +60,72 @@ class Customer {
         }
 
         const query = `
-            INSERT INTO customers (id, first_name, last_name, email, phone, address, date_of_birth)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING *
+            INSERT INTO customers (id, first_name, last_name, email, phone, address, date_of_birth, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at
         `;
-        const values = [customerId, firstName, lastName, email, phone, address, dateOfBirth];
+        const values = [customerId, firstName, lastName, email, phone, address, dateOfBirth, status];
         const result = await pool.query(query, values);
-        return new Customer(...Object.values(result.rows[0]));
+        const {id, first_name, last_name, email: customerEmail, phone: customerPhone, address: customerAddress, date_of_birth, status: customerStatus, created_at, updated_at} = result.rows[0];
+        return new Customer(id, first_name, last_name, customerEmail, customerPhone, customerAddress, date_of_birth, customerStatus, created_at, updated_at);
     }
 
     static async getCustomerById(id) {
-        const query = 'SELECT * FROM customers WHERE id = $1';
+        const query = 'SELECT id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at FROM customers WHERE id = $1';
         const result = await pool.query(query, [id]);
         if (result.rows.length === 0) return null;
-        return new Customer(...Object.values(result.rows[0]));
+        const {id: customerId, first_name, last_name, email: customerEmail, phone: customerPhone, address: customerAddress, date_of_birth, status, created_at, updated_at} = result.rows[0];
+        return new Customer(customerId, first_name, last_name, customerEmail, customerPhone, customerAddress, date_of_birth, status, created_at, updated_at);
     }
 
     static async getAllCustomers() {
-        const query = 'SELECT * FROM customers ORDER BY created_at DESC';
+        const query = 'SELECT id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at FROM customers ORDER BY created_at DESC';
         const result = await pool.query(query);
-        return result.rows.map(row => new Customer(...Object.values(row)));
+        return result.rows.map(row => {
+            const {id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at} = row;
+            return new Customer(id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at);
+        });
+    }
+
+    static async getActiveCustomers() {
+        const query = 'SELECT id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at FROM customers WHERE status = \'active\' ORDER BY first_name, last_name';
+        const result = await pool.query(query);
+        return result.rows.map(row => {
+            const {id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at} = row;
+            return new Customer(id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at);
+        });
     }
 
     static async updateCustomer(id, updates) {
-        const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 2}`).join(', ');
+        // Map JavaScript property names to database column names
+        const columnMap = {
+            firstName: 'first_name',
+            lastName: 'last_name',
+            email: 'email',
+            phone: 'phone',
+            address: 'address',
+            dateOfBirth: 'date_of_birth',
+            status: 'status'
+        };
+
+        const dbUpdates = {};
+        Object.keys(updates).forEach(key => {
+            const dbColumnName = columnMap[key] || key;
+            dbUpdates[dbColumnName] = updates[key];
+        });
+
+        const setClause = Object.keys(dbUpdates).map((key, index) => `${key} = $${index + 2}`).join(', ');
         const query = `
             UPDATE customers 
             SET ${setClause}, updated_at = CURRENT_TIMESTAMP 
             WHERE id = $1 
-            RETURNING *
+            RETURNING id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at
         `;
-        const values = [id, ...Object.values(updates)];
+        const values = [id, ...Object.values(dbUpdates)];
         const result = await pool.query(query, values);
         if (result.rows.length === 0) return null;
-        return new Customer(...Object.values(result.rows[0]));
+        const {id: customerId, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at} = result.rows[0];
+        return new Customer(customerId, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at);
     }
 }
 

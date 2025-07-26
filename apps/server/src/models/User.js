@@ -26,13 +26,13 @@ class User {
     }
 
     static async getUserByUsername(username) {
-        const query = 'SELECT * FROM users WHERE username = $1 AND is_active = true';
+        const query = 'SELECT id, username, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at FROM users WHERE username = $1 AND is_active = true';
         const result = await pool.query(query, [username]);
         return result.rows[0];
     }
 
     static async getUserByEmail(email) {
-        const query = 'SELECT * FROM users WHERE email = $1 AND is_active = true';
+        const query = 'SELECT id, username, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at FROM users WHERE email = $1 AND is_active = true';
         const result = await pool.query(query, [email]);
         return result.rows[0];
     }
