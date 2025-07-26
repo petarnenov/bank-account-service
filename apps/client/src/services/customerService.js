@@ -8,7 +8,6 @@ const API_BASE_URL = typeof process.env.REACT_APP_API_URL !== 'undefined' && pro
 // Create axios instance with default config
 const api = axios.create({
     baseURL: API_BASE_URL + '/api',
-    timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
     },
