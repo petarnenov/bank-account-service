@@ -4,7 +4,7 @@
   "description": "Bank Account Service API",
   "main": "src/app.js",
   "scripts": {
-    "start": "PORT=5000 node src/app.js",
+    "start": "node src/app.js",
     "dev": "PORT=5000 nodemon src/app.js",
     "test": "jest",
     "test:watch": "jest --watch"
