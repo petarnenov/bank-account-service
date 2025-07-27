@@ -1,6 +1,6 @@
 import React from 'react';
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import AccountCard from './AccountCard';
 
 // Mock AccountService to avoid axios import and side effects
@@ -28,10 +28,8 @@ describe('AccountCard integration', () => {
 
 		render(<AccountCard account={mockAccount} onClick={() => { }} />);
 		const select = screen.getByRole('combobox');
-		await act(async () => {
-			fireEvent.change(select, { target: { value: 'inactive' } });
-			await Promise.resolve();
-		});
+		fireEvent.change(select, { target: { value: 'inactive' } });
+		await Promise.resolve();
 		expect(AccountService.updateAccountStatus).toHaveBeenCalledWith('acc1', 'inactive');
 		// window.location.reload cannot be reliably asserted in jsdom
 	});
@@ -43,10 +41,8 @@ describe('AccountCard integration', () => {
 		render(<AccountCard account={mockAccount} onClick={() => { }} />);
 		const select = screen.getByRole('combobox');
 		const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
-		await act(async () => {
-			fireEvent.change(select, { target: { value: 'frozen' } });
-			await Promise.resolve();
-		});
+		fireEvent.change(select, { target: { value: 'frozen' } });
+		await Promise.resolve();
 		// Modal should appear with error message (wait for it)
 		expect(await screen.findByText('Failed to update account status. Please try again.')).toBeInTheDocument();
 		// Modal close button should be present
