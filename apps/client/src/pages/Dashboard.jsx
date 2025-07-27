@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AccountList from '../components/AccountList';
+import { useAuth } from '../contexts/AuthContext';
+import AiAssistant from '../components/AiAssistant';
 
 import AccountService from '../services/accountService';
 
 
 const Dashboard = () => {
+    const { user, loading: authLoading } = useAuth();
+    const [aiCollapsed, setAiCollapsed] = useState(true);
     const [accounts, setAccounts] = useState([]);
     const [filteredAccounts, setFilteredAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -147,6 +151,11 @@ const Dashboard = () => {
 
             {/* Account List */}
             <AccountList accounts={filteredAccounts} />
+
+            {/* AI Assistant (only show if logged in) */}
+            {user && (
+                <AiAssistant collapsed={aiCollapsed} setCollapsed={setAiCollapsed} />
+            )}
         </div>
     );
 };

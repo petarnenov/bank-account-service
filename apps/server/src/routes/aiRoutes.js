@@ -21,21 +21,21 @@ let tools = [
 	{
 		type: 'function',
 		function: {
-			name: 'get_accounts_by_customer',
+			name: 'getAccountsByCustomer',
 			description: 'Get all accounts for a given customer ID.',
 			parameters: {
 				type: 'object',
 				properties: {
-					customer_id: { type: 'string', description: 'The customer ID to look up.' }
+					customerId: { type: 'string', description: 'The customer ID to look up.' }
 				},
-				required: ['customer_id']
+				required: ['customerId']
 			},
 		},
 	},
 	{
 		type: 'function',
 		function: {
-			name: 'get_all_accounts',
+			name: 'getAllAccounts',
 			description: 'Get a list of all bank accounts with their details.',
 			parameters: {
 				type: 'object',
@@ -46,21 +46,21 @@ let tools = [
 	{
 		type: 'function',
 		function: {
-			name: 'get_customer_by_account',
+			name: 'getCustomerByAccount',
 			description: 'Get customer details by account number.',
 			parameters: {
 				type: 'object',
 				properties: {
-					account_number: { type: 'string', description: 'The account number to look up.' }
+					accountNumber: { type: 'string', description: 'The account number to look up.' }
 				},
-				required: ['account_number']
+				required: ['accountNumber']
 			},
 		},
 	},
 	{
 		type: 'function',
 		function: {
-			name: 'search_customer_by_name',
+			name: 'searchCustomerByName',
 			description: 'Search for customers by (partial) first or last name.',
 			parameters: {
 				type: 'object',
@@ -105,7 +105,7 @@ router.post('/chat', async (req, res) => {
 		const toolCall = choice.message.tool_calls && choice.message.tool_calls[0];
 
 		if (toolCall && toolCall.function) {
-			if (toolCall.function.name === 'get_all_accounts') {
+			if (toolCall.function.name === 'getAllAccounts') {
 				// Step 2: Call the tool (fetch all accounts)
 				const accounts = await Account.getAllAccounts();
 				// Prepare a summary for the AI: total count and preview
@@ -157,11 +157,11 @@ router.post('/chat', async (req, res) => {
 				console.log('OpenAI followup response:', JSON.stringify(followup, null, 2));
 				const aiMessage = followup.choices[0].message.content;
 				res.json({ aiMessage, accounts: toolResult });
-			} else if (toolCall.function.name === 'get_customer_by_account') {
+			} else if (toolCall.function.name === 'getCustomerByAccount') {
 				// Step 2: Call the tool (fetch customer by account number)
 				let args = {};
 				try { args = JSON.parse(toolCall.function.arguments); } catch { }
-				const accountNumber = args.account_number;
+				const accountNumber = args.accountNumber;
 				let customer = null;
 				if (accountNumber) {
 					const customerId = await Account.getCustomerIdByAccountNumber(accountNumber);
@@ -177,15 +177,15 @@ router.post('/chat', async (req, res) => {
 				};
 				const toolResult = customer ? {
 					id: customer.id,
-					first_name: customer.firstName,
-					last_name: customer.lastName,
+					firstName: customer.firstName,
+					lastName: customer.lastName,
 					email: customer.email,
 					phone: customer.phone,
 					address: customer.address,
-					date_of_birth: customer.dateOfBirth,
+					dateOfBirth: customer.dateOfBirth,
 					status: customer.status,
-					created_at: customer.createdAt,
-					updated_at: customer.updatedAt
+					createdAt: customer.createdAt,
+					updatedAt: customer.updatedAt
 				} : { error: 'Customer not found for this account number.' };
 				let followupMessages = [
 					{ role: 'system', content: 'You are a helpful assistant for a bank account dashboard.' }
@@ -213,7 +213,7 @@ router.post('/chat', async (req, res) => {
 				console.log('OpenAI followup response:', JSON.stringify(followup, null, 2));
 				const aiMessage = followup.choices[0].message.content;
 				res.json({ aiMessage, customer: toolResult });
-			} else if (toolCall.function.name === 'search_customer_by_name') {
+			} else if (toolCall.function.name === 'searchCustomerByName') {
 				// Step 2: Call the tool (search customers by name)
 				let args = {};
 				try { args = JSON.parse(toolCall.function.arguments); } catch { }
@@ -225,15 +225,15 @@ router.post('/chat', async (req, res) => {
 				// Prepare a summary for the AI: total count and preview
 				const preview = customers.map(cust => ({
 					id: cust.id,
-					first_name: cust.firstName,
-					last_name: cust.lastName,
+					firstName: cust.firstName,
+					lastName: cust.lastName,
 					email: cust.email,
 					phone: cust.phone,
 					address: cust.address,
-					date_of_birth: cust.dateOfBirth,
+					dateOfBirth: cust.dateOfBirth,
 					status: cust.status,
-					created_at: cust.createdAt,
-					updated_at: cust.updatedAt
+					createdAt: cust.createdAt,
+					updatedAt: cust.updatedAt
 				}));
 				const toolResult = {
 					total: customers.length,
@@ -271,11 +271,11 @@ router.post('/chat', async (req, res) => {
 				console.log('OpenAI followup response:', JSON.stringify(followup, null, 2));
 				const aiMessage = followup.choices[0].message.content;
 				res.json({ aiMessage, customers: toolResult });
-			} else if (toolCall.function.name === 'get_accounts_by_customer') {
+			} else if (toolCall.function.name === 'getAccountsByCustomer') {
 				// Step 2: Call the tool (fetch accounts by customer ID)
 				let args = {};
 				try { args = JSON.parse(toolCall.function.arguments); } catch { }
-				const customerId = args.customer_id;
+				const customerId = args.customerId;
 				let accounts = [];
 				if (customerId) {
 					accounts = await Account.getAccountsByCustomerId(customerId);
