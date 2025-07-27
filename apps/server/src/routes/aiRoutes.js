@@ -1,3 +1,28 @@
+// Spell checker tool uses OpenAI to check and correct English writing
+const spellCheckerTool = tool({
+	type: 'function',
+	name: 'spellChecker',
+	description: 'Check and correct English spelling and grammar. Use this for any questions about English writing, spelling, or grammar.',
+	parameters: {
+		type: 'object',
+		properties: {
+			text: { type: 'string', description: 'The English text to check and correct.' }
+		},
+		required: ['text']
+	},
+	execute: async ({ text }) => {
+		// Use OpenAI to check and correct the text
+		const response = await openai.chat.completions.create({
+			model: 'gpt-3.5-turbo-1106',
+			messages: [
+				{ role: 'system', content: 'You are a helpful English writing assistant. Correct any spelling or grammar mistakes in the user\'s text, and return the corrected version.' },
+				{ role: 'user', content: text }
+			],
+			max_tokens: 200
+		});
+		return { corrected: response.choices[0].message.content };
+	}
+});
 const express = require('express');
 const router = express.Router();
 
@@ -19,6 +44,7 @@ async function getCustomerOptions() {
 }
 
 let tools = [
+	spellCheckerTool,
 	tool({
 		type: 'function',
 		name: 'getCurrentDate',
