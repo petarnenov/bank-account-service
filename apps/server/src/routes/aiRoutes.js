@@ -1,4 +1,19 @@
-// Spell checker tool uses OpenAI to check and correct English writing
+// =========================
+// Imports and Setup
+// =========================
+const express = require('express');
+const router = express.Router();
+const { OpenAI } = require('openai');
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+const { tool } = require('ai');
+const Account = require('../models/Account');
+const Customer = require('../models/Customer');
+
+// =========================
+// Tool Definitions
+// =========================
+
 const spellCheckerTool = tool({
 	type: 'function',
 	name: 'spellChecker',
@@ -11,7 +26,6 @@ const spellCheckerTool = tool({
 		required: ['text']
 	},
 	execute: async ({ text }) => {
-		// Use OpenAI to check and correct the text
 		const response = await openai.chat.completions.create({
 			model: 'gpt-3.5-turbo-1106',
 			messages: [
@@ -23,19 +37,6 @@ const spellCheckerTool = tool({
 		return { corrected: response.choices[0].message.content };
 	}
 });
-const express = require('express');
-const router = express.Router();
-
-const { OpenAI } = require('openai');
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
-
-const { tool } = require('ai');
-
-const Account = require('../models/Account');
-
-// Define OpenAI tool (function) schema
-const Customer = require('../models/Customer');
 
 // Helper to get all customers for enum options
 async function getCustomerOptions() {
@@ -43,87 +44,108 @@ async function getCustomerOptions() {
 	return customers.map(c => ({ value: c.id, label: `${c.firstName} ${c.lastName} (${c.id})` }));
 }
 
+
+
+const getCurrentDateTool = tool({
+	type: 'function',
+	name: 'getCurrentDate',
+	description: 'Get the current date in ISO format (YYYY-MM-DD). Use this for any questions about today\'s date or the current date.',
+	parameters: {
+		type: 'object',
+		properties: {},
+	},
+	execute: async () => {
+		const now = new Date();
+		return { date: now.toISOString().slice(0, 10) };
+	}
+});
+
+
+const getAccountsByCustomerTool = tool({
+	type: 'function',
+	name: 'getAccountsByCustomer',
+	description: 'Get all accounts for a given customer ID.',
+	parameters: {
+		type: 'object',
+		properties: {
+			customerId: { type: 'string', description: 'The customer ID to look up.' }
+		},
+		required: ['customerId']
+	},
+	execute: async ({ customerId }) => {
+		return await Account.getAccountsByCustomerId(customerId);
+	}
+});
+
+
+const getAllAccountsTool = tool({
+	type: 'function',
+	name: 'getAllAccounts',
+	description: 'Get a list of all bank accounts with their details.',
+	parameters: {
+		type: 'object',
+		properties: {},
+	},
+	execute: async () => {
+		return await Account.getAllAccounts();
+	}
+});
+
+
+const getCustomerByAccountTool = tool({
+	type: 'function',
+	name: 'getCustomerByAccount',
+	description: 'Get customer details by account number.',
+	parameters: {
+		type: 'object',
+		properties: {
+			accountNumber: { type: 'string', description: 'The account number to look up.' }
+		},
+		required: ['accountNumber']
+	},
+	execute: async ({ accountNumber }) => {
+		const customerId = await Account.getCustomerIdByAccountNumber(accountNumber);
+		if (customerId) {
+			return await Customer.getCustomerById(customerId);
+		}
+		return null;
+	}
+});
+
+
+const searchCustomerByNameTool = tool({
+	type: 'function',
+	name: 'searchCustomerByName',
+	description: 'Search for customers by (partial) first or last name.',
+	parameters: {
+		type: 'object',
+		properties: {
+			name: { type: 'string', description: 'The (partial) first or last name to search for.' }
+		},
+		required: ['name']
+	},
+	execute: async ({ name }) => {
+		return await Customer.searchByName(name);
+	}
+});
+
+
+// =========================
+// Tools Array
+// =========================
 let tools = [
 	spellCheckerTool,
-	tool({
-		type: 'function',
-		name: 'getCurrentDate',
-		description: 'Get the current date in ISO format (YYYY-MM-DD). Use this for any questions about today\'s date or the current date.',
-		parameters: {
-			type: 'object',
-			properties: {},
-		},
-		execute: async () => {
-			const now = new Date();
-			return { date: now.toISOString().slice(0, 10) };
-		}
-	}),
-	tool({
-		type: 'function',
-		name: 'getAccountsByCustomer',
-		description: 'Get all accounts for a given customer ID.',
-		parameters: {
-			type: 'object',
-			properties: {
-				customerId: { type: 'string', description: 'The customer ID to look up.' }
-			},
-			required: ['customerId']
-		},
-		execute: async ({ customerId }) => {
-			return await Account.getAccountsByCustomerId(customerId);
-		}
-	}),
-	tool({
-		type: 'function',
-		name: 'getAllAccounts',
-		description: 'Get a list of all bank accounts with their details.',
-		parameters: {
-			type: 'object',
-			properties: {},
-		},
-		execute: async () => {
-			return await Account.getAllAccounts();
-		}
-	}),
-	tool({
-		type: 'function',
-		name: 'getCustomerByAccount',
-		description: 'Get customer details by account number.',
-		parameters: {
-			type: 'object',
-			properties: {
-				accountNumber: { type: 'string', description: 'The account number to look up.' }
-			},
-			required: ['accountNumber']
-		},
-		execute: async ({ accountNumber }) => {
-			const customerId = await Account.getCustomerIdByAccountNumber(accountNumber);
-			if (customerId) {
-				return await Customer.getCustomerById(customerId);
-			}
-			return null;
-		}
-	}),
-	tool({
-		type: 'function',
-		name: 'searchCustomerByName',
-		description: 'Search for customers by (partial) first or last name.',
-		parameters: {
-			type: 'object',
-			properties: {
-				name: { type: 'string', description: 'The (partial) first or last name to search for.' }
-			},
-			required: ['name']
-		},
-		execute: async ({ name }) => {
-			return await Customer.searchByName(name);
-		}
-	})
+	getCurrentDateTool,
+	getAccountsByCustomerTool,
+	getAllAccountsTool,
+	getCustomerByAccountTool,
+	searchCustomerByNameTool
 ];
 
-// Map tool names to tool objects for easy lookup
 
-// Prepare OpenAI-compatible tool definitions (strip execute, wrap in {type, function})
+// =========================
+// Tool Mapping and OpenAI Integration
+// =========================
 const openAITools = tools.map(t => ({
 	type: 'function',
 	function: {
@@ -135,19 +157,18 @@ const openAITools = tools.map(t => ({
 
 const toolMap = Object.fromEntries(tools.map(t => [t.name, t]));
 
-// Patch the customer_id enum before each request
+// =========================
+// AI Assistant Chat Endpoint
+// =========================
 router.post('/chat', async (req, res) => {
-	// No need to patch customer_id enum, create_new_account tool removed
 	const { message, history } = req.body;
 	if (!message) return res.status(400).json({ error: 'Message is required' });
 	try {
 		// Step 1: Send user message to OpenAI with tool definitions
-		// Compose the message history for OpenAI
 		let messages = [
 			{ role: 'system', content: 'You are a helpful assistant for a bank account dashboard.' }
 		];
 		if (Array.isArray(history)) {
-			// Only allow roles 'user' and 'assistant' and valid content
 			messages = messages.concat(
 				history.filter(
 					m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string'
@@ -162,7 +183,6 @@ router.post('/chat', async (req, res) => {
 			tool_choice: 'auto',
 			max_tokens: 150
 		});
-		console.log('OpenAI initial response:', JSON.stringify(initial, null, 2));
 		const choice = initial.choices[0];
 		const toolCall = choice.message.tool_calls && choice.message.tool_calls[0];
 
@@ -172,12 +192,8 @@ router.post('/chat', async (req, res) => {
 				let args = {};
 				try { args = JSON.parse(toolCall.function.arguments); } catch { }
 				const result = await toolDef.execute(args);
-				// Prepare a summary for the AI if needed
 				let toolResult = result;
-				//log result
-				console.log("ai tool result is: ", result)
 				if (Array.isArray(result)) {
-					// For list results, provide a preview and total
 					toolResult = {
 						total: result.length,
 						preview: result

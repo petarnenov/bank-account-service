@@ -33,6 +33,13 @@ class Account {
         this.updatedAt = updatedAt;
     }
 
+    static async getCustomerIdByAccountNumber(accountNumber) {
+        const query = `SELECT customer_id FROM accounts WHERE account_number = $1`;
+        const result = await pool.query(query, [accountNumber]);
+        if (result.rows.length === 0) return null;
+        return result.rows[0].customer_id;
+    }
+
     static async createAccount({ accountNumber, accountType, balance, currency, customerId, status = 'active' }) {
         const query = `
             INSERT INTO accounts (account_number, account_type, balance, currency, customer_id, status)
