@@ -1,4 +1,4 @@
-const {Pool} = require('pg');
+const { Pool } = require('pg');
 
 // Load environment variables
 require('dotenv').config();
@@ -31,7 +31,7 @@ class Account {
         `;
         const values = [accountNumber, accountType, balance, currency, customerId, status];
         const result = await pool.query(query, values);
-        const {id, account_number, account_type, balance: bal, currency: curr, customer_id, status: accStatus, created_at, updated_at} = result.rows[0];
+        const { id, account_number, account_type, balance: bal, currency: curr, customer_id, status: accStatus, created_at, updated_at } = result.rows[0];
         return new Account(id, account_number, account_type, bal, curr, customer_id, accStatus, created_at, updated_at);
     }
 
@@ -43,7 +43,7 @@ class Account {
         `;
         const result = await pool.query(query, [id]);
         if (result.rows.length === 0) return null;
-        const {id: accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at} = result.rows[0];
+        const { id: accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at } = result.rows[0];
         return new Account(accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at);
     }
 
@@ -55,7 +55,7 @@ class Account {
         `;
         const result = await pool.query(query, [accountNumber]);
         if (result.rows.length === 0) return null;
-        const {id, account_number: accNum, account_type, balance, currency, customer_id, status, created_at, updated_at} = result.rows[0];
+        const { id, account_number: accNum, account_type, balance, currency, customer_id, status, created_at, updated_at } = result.rows[0];
         return new Account(id, accNum, account_type, balance, currency, customer_id, status, created_at, updated_at);
     }
 
@@ -67,7 +67,7 @@ class Account {
         `;
         const result = await pool.query(query, [customerId]);
         return result.rows.map(row => {
-            const {id, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at} = row;
+            const { id, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at } = row;
             return new Account(id, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at);
         });
     }
@@ -81,7 +81,7 @@ class Account {
         `;
         const result = await pool.query(query, [newBalance, id]);
         if (result.rows.length === 0) return null;
-        const {id: accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at} = result.rows[0];
+        const { id: accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at } = result.rows[0];
         return new Account(accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at);
     }
 
@@ -93,7 +93,7 @@ class Account {
         `;
         const result = await pool.query(query);
         return result.rows.map(row => {
-            const {id, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at} = row;
+            const { id, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at } = row;
             return new Account(id, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at);
         });
     }
@@ -107,7 +107,7 @@ class Account {
         `;
         const result = await pool.query(query, [status, id]);
         if (result.rows.length === 0) return null;
-        const {id: accountId, account_number, account_type, balance, currency, customer_id, status: accountStatus, created_at, updated_at} = result.rows[0];
+        const { id: accountId, account_number, account_type, balance, currency, customer_id, status: accountStatus, created_at, updated_at } = result.rows[0];
         return new Account(accountId, account_number, account_type, balance, currency, customer_id, accountStatus, created_at, updated_at);
     }
 }

@@ -1,7 +1,9 @@
-import React, {useState, useEffect} from 'react';
-import {Link} from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import AccountList from '../components/AccountList';
+
 import AccountService from '../services/accountService';
+
 
 const Dashboard = () => {
     const [accounts, setAccounts] = useState([]);
@@ -54,7 +56,7 @@ const Dashboard = () => {
             frozen: accounts.filter(acc => acc.status === 'frozen').reduce((sum, acc) => sum + parseFloat(acc.balance || 0), 0)
         };
 
-        return {...stats, balances: balanceByStatus};
+        return { ...stats, balances: balanceByStatus };
     };
 
     const formatCurrency = (amount) => {
@@ -77,6 +79,7 @@ const Dashboard = () => {
                     + Create Account
                 </Link>
             </div>
+
 
             {/* Status Overview Cards */}
             <div className="dashboard-overview">

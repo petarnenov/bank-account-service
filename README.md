@@ -140,7 +140,7 @@ cd apps/client && npm install # Client dependencies
 ### Environment Variables
 Configure `.env` file:
 ```env
-PORT=5000
+PORT=5001
 NODE_ENV=development
 DATABASE_URL=postgresql://your-connection-string
 CLIENT_URL=http://localhost:3000

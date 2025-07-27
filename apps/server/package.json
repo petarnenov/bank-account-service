@@ -5,7 +5,7 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "PORT=5000 nodemon src/app.js",
+    "dev": "PORT=5001 nodemon src/app.js",
     "test": "jest",
     "test:watch": "jest --watch"
   },

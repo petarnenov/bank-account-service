@@ -1,4 +1,4 @@
-const {Pool} = require('pg');
+const { Pool } = require('pg');
 
 // Load environment variables
 require('dotenv').config();
@@ -11,6 +11,14 @@ const pool = new Pool({
 });
 
 class Customer {
+    static async searchByName(name) {
+        const query = `SELECT id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at FROM customers WHERE LOWER(first_name) LIKE LOWER($1) OR LOWER(last_name) LIKE LOWER($1) ORDER BY first_name, last_name`;
+        const result = await pool.query(query, [`%${name}%`]);
+        return result.rows.map(row => {
+            const { id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at } = row;
+            return new Customer(id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at);
+        });
+    }
     constructor(id, firstName, lastName, email, phone, address, dateOfBirth, status, createdAt, updatedAt) {
         this.id = id;
         this.firstName = firstName;
@@ -66,7 +74,7 @@ class Customer {
         `;
         const values = [customerId, firstName, lastName, email, phone, address, dateOfBirth, status];
         const result = await pool.query(query, values);
-        const {id, first_name, last_name, email: customerEmail, phone: customerPhone, address: customerAddress, date_of_birth, status: customerStatus, created_at, updated_at} = result.rows[0];
+        const { id, first_name, last_name, email: customerEmail, phone: customerPhone, address: customerAddress, date_of_birth, status: customerStatus, created_at, updated_at } = result.rows[0];
         return new Customer(id, first_name, last_name, customerEmail, customerPhone, customerAddress, date_of_birth, customerStatus, created_at, updated_at);
     }
 
@@ -74,7 +82,7 @@ class Customer {
         const query = 'SELECT id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at FROM customers WHERE id = $1';
         const result = await pool.query(query, [id]);
         if (result.rows.length === 0) return null;
-        const {id: customerId, first_name, last_name, email: customerEmail, phone: customerPhone, address: customerAddress, date_of_birth, status, created_at, updated_at} = result.rows[0];
+        const { id: customerId, first_name, last_name, email: customerEmail, phone: customerPhone, address: customerAddress, date_of_birth, status, created_at, updated_at } = result.rows[0];
         return new Customer(customerId, first_name, last_name, customerEmail, customerPhone, customerAddress, date_of_birth, status, created_at, updated_at);
     }
 
@@ -82,7 +90,7 @@ class Customer {
         const query = 'SELECT id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at FROM customers ORDER BY created_at DESC';
         const result = await pool.query(query);
         return result.rows.map(row => {
-            const {id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at} = row;
+            const { id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at } = row;
             return new Customer(id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at);
         });
     }
@@ -91,7 +99,7 @@ class Customer {
         const query = 'SELECT id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at FROM customers WHERE status = \'active\' ORDER BY first_name, last_name';
         const result = await pool.query(query);
         return result.rows.map(row => {
-            const {id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at} = row;
+            const { id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at } = row;
             return new Customer(id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at);
         });
     }
@@ -124,7 +132,7 @@ class Customer {
         const values = [id, ...Object.values(dbUpdates)];
         const result = await pool.query(query, values);
         if (result.rows.length === 0) return null;
-        const {id: customerId, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at} = result.rows[0];
+        const { id: customerId, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at } = result.rows[0];
         return new Customer(customerId, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at);
     }
 }

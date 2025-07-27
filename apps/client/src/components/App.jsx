@@ -1,8 +1,9 @@
-import React from 'react';
-import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
-import {AuthProvider} from '../contexts/AuthContext';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from '../contexts/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
 import Header from './Header';
+import AiAssistant from './AiAssistant';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Dashboard from '../pages/Dashboard';
@@ -11,7 +12,10 @@ import CreateAccount from '../pages/CreateAccount';
 import Customers from '../pages/Customers';
 import CreateCustomer from '../pages/CreateCustomer';
 
+
 function App() {
+    // Keep AI Assistant collapsed state in App so it persists across tab changes
+    const [aiCollapsed, setAiCollapsed] = useState(true);
     return (
         <AuthProvider>
             <Router>
@@ -74,6 +78,7 @@ function App() {
                             />
                         </Routes>
                     </main>
+                    <AiAssistant collapsed={aiCollapsed} setCollapsed={setAiCollapsed} />
                 </div>
             </Router>
         </AuthProvider>
