@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './AiAssistant.css';
 
 
@@ -8,6 +8,16 @@ const AiAssistant = ({ collapsed, setCollapsed }) => {
 		{ sender: 'ai', text: 'Hi! I am your AI Assistant. How can I help you with your accounts today?' }
 	]);
 	const [loading, setLoading] = useState(false);
+
+	// Ref for auto-scrolling
+	const messagesEndRef = useRef(null);
+
+	// Scroll to bottom when messages or loading changes
+	useEffect(() => {
+		if (messagesEndRef.current) {
+			messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+		}
+	}, [messages, loading]);
 
 	const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
@@ -70,11 +80,12 @@ const AiAssistant = ({ collapsed, setCollapsed }) => {
 					▼
 				</button>
 			</div>
-			<div className="ai-messages">
-				{[...messages].reverse().map((msg, idx) => (
+			<div className="ai-messages" style={{ overflowY: 'auto', maxHeight: 400 }}>
+				{messages.map((msg, idx) => (
 					<div key={idx} className={`ai-msg ai-msg-${msg.sender}`}>{msg.text}</div>
 				))}
 				{loading && <div className="ai-msg ai-msg-ai">Thinking...</div>}
+				<div ref={messagesEndRef} />
 			</div>
 			<form className="ai-input-row" onSubmit={handleSend}>
 				<input
