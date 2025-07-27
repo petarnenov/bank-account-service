@@ -21,6 +21,19 @@ async function getCustomerOptions() {
 let tools = [
 	tool({
 		type: 'function',
+		name: 'getCurrentDate',
+		description: 'Get the current date in ISO format (YYYY-MM-DD). Use this for any questions about today\'s date or the current date.',
+		parameters: {
+			type: 'object',
+			properties: {},
+		},
+		execute: async () => {
+			const now = new Date();
+			return { date: now.toISOString().slice(0, 10) };
+		}
+	}),
+	tool({
+		type: 'function',
 		name: 'getAccountsByCustomer',
 		description: 'Get all accounts for a given customer ID.',
 		parameters: {

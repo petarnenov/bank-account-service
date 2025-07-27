@@ -36,7 +36,7 @@ class Customer {
     }
 
     static async searchByName(name) {
-        const query = `SELECT id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at FROM customers WHERE LOWER(first_name) LIKE LOWER($1) OR LOWER(last_name) LIKE LOWER($1) ORDER BY first_name, last_name`;
+        const query = `SELECT id, first_name, last_name, email, phone, address, date_of_birth, status, created_at, updated_at FROM customers WHERE LOWER(first_name) LIKE LOWER($1) OR LOWER(last_name) LIKE LOWER($1) OR LOWER(first_name || ' ' || last_name) LIKE LOWER($1) ORDER BY first_name, last_name`;
         const result = await pool.query(query, [`%${name}%`]);
         return result.rows.map(row => new Customer({
             id: row.id,
