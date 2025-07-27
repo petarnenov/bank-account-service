@@ -165,8 +165,18 @@ router.post('/chat', async (req, res) => {
 	if (!message) return res.status(400).json({ error: 'Message is required' });
 	try {
 		// Step 1: Send user message to OpenAI with tool definitions
+		// System prompt with tool descriptions
+		const toolDescriptions = [
+			'Available tools:',
+			'- spellChecker: Correct English spelling and grammar.',
+			'- getCurrentDate: Get today\'s date.',
+			'- getAccountsByCustomer: List all accounts for a customer.',
+			'- getAllAccounts: List all bank accounts.',
+			'- getCustomerByAccount: Get customer details by account number.',
+			'- searchCustomerByName: Search customers by name.'
+		].join(' ');
 		let messages = [
-			{ role: 'system', content: 'You are a helpful assistant for a bank account dashboard.' }
+			{ role: 'system', content: `You are a helpful assistant for a bank account dashboard. ${toolDescriptions}` }
 		];
 		if (Array.isArray(history)) {
 			messages = messages.concat(
