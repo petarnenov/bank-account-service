@@ -1,7 +1,7 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import CustomerService from '../services/customerService';
 
-const AccountForm = ({onSubmit, initialData = {}, isCustomerPreSelected = false}) => {
+const AccountForm = ({ onSubmit, initialData = {}, isCustomerPreSelected = false }) => {
     const [formData, setFormData] = useState({
         accountType: initialData.accountType || 'checking',
         balance: initialData.balance || 0,
@@ -19,9 +19,9 @@ const AccountForm = ({onSubmit, initialData = {}, isCustomerPreSelected = false}
     const [selectedCustomerIndex, setSelectedCustomerIndex] = useState(-1);
 
     useEffect(() => {
-        const fetchActiveCustomers = async () => {
+        const fetchCustomers = async () => {
             try {
-                const data = await CustomerService.getActiveCustomers();
+                const data = await CustomerService.getAllCustomers();
                 setCustomers(data);
             } catch (err) {
                 setError('Failed to load customers: ' + err.message);
@@ -30,7 +30,7 @@ const AccountForm = ({onSubmit, initialData = {}, isCustomerPreSelected = false}
             }
         };
 
-        fetchActiveCustomers();
+        fetchCustomers();
     }, []);
 
     // Filter customers based on search input
@@ -57,12 +57,16 @@ const AccountForm = ({onSubmit, initialData = {}, isCustomerPreSelected = false}
             const selectedCustomer = customers.find(c => c.id === formData.customerId);
             if (selectedCustomer) {
                 setCustomerSearch(`${selectedCustomer.firstName} ${selectedCustomer.lastName} (${selectedCustomer.email})`);
+            } else {
+                // If preselected customerId is not found, clear the field for typeahead
+                setFormData(prev => ({ ...prev, customerId: '' }));
+                setCustomerSearch('');
             }
         }
     }, [formData.customerId, customers, customerSearch]);
 
     const handleChange = (e) => {
-        const {name, value} = e.target;
+        const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value

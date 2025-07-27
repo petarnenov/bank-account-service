@@ -111,14 +111,14 @@ router.post('/chat', async (req, res) => {
 				// Prepare a summary for the AI: total count and preview
 				const preview = accounts.map(acc => ({
 					id: acc.id,
-					account_number: acc.account_number,
-					account_type: acc.account_type,
+					accountNumber: acc.accountNumber,
+					accountType: acc.accountType,
 					balance: acc.balance,
 					currency: acc.currency,
-					customer_id: acc.customerId,
+					customerId: acc.customerId,
 					status: acc.status,
-					created_at: acc.createdAt,
-					updated_at: acc.updatedAt
+					createdAt: acc.createdAt,
+					updatedAt: acc.updatedAt
 				}));
 				const toolResult = {
 					total: accounts.length,
@@ -283,14 +283,14 @@ router.post('/chat', async (req, res) => {
 				// Prepare a summary for the AI: total count and preview
 				const preview = accounts.map(acc => ({
 					id: acc.id,
-					account_number: acc.account_number,
-					account_type: acc.account_type,
+					accountNumber: acc.accountNumber,
+					accountType: acc.accountType,
 					balance: acc.balance,
 					currency: acc.currency,
-					customer_id: acc.customerId,
+					customerId: acc.customerId,
 					status: acc.status,
-					created_at: acc.createdAt,
-					updated_at: acc.updatedAt
+					createdAt: acc.createdAt,
+					updatedAt: acc.updatedAt
 				}));
 				const toolResult = {
 					total: accounts.length,

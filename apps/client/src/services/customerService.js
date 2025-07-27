@@ -72,7 +72,17 @@ class CustomerService {
 
     static async createCustomer(customerData) {
         try {
-            const response = await api.post('/customers', customerData);
+            // Ensure camelCase keys for backend compatibility
+            const payload = {
+                firstName: customerData.firstName,
+                lastName: customerData.lastName,
+                email: customerData.email,
+                phone: customerData.phone,
+                address: customerData.address,
+                dateOfBirth: customerData.dateOfBirth,
+                status: customerData.status
+            };
+            const response = await api.post('/customers', payload);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to create customer');

@@ -73,7 +73,15 @@ class AccountService {
 
     static async createAccount(accountData) {
         try {
-            const response = await api.post('/accounts', accountData);
+            // Ensure camelCase keys for backend compatibility
+            const payload = {
+                accountType: accountData.accountType,
+                balance: accountData.balance,
+                currency: accountData.currency,
+                customerId: accountData.customerId,
+                status: accountData.status
+            };
+            const response = await api.post('/accounts', payload);
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to create account');
@@ -82,7 +90,7 @@ class AccountService {
 
     static async updateBalance(id, balance) {
         try {
-            const response = await api.patch(`/accounts/${id}/balance`, {balance});
+            const response = await api.patch(`/accounts/${id}/balance`, { balance });
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to update balance');
@@ -91,7 +99,7 @@ class AccountService {
 
     static async updateAccountStatus(id, status) {
         try {
-            const response = await api.patch(`/accounts/${id}/status`, {status});
+            const response = await api.patch(`/accounts/${id}/status`, { status });
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to update account status');

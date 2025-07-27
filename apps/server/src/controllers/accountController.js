@@ -15,11 +15,11 @@ class AccountController {
 
     static async createAccount(req, res) {
         try {
-            let {accountType, balance, currency, customerId, status = 'active'} = req.body;
+            let { accountType, balance, currency, customerId, status = 'active' } = req.body;
 
             // Validate required fields
             if (!accountType || !customerId) {
-                return res.status(400).json({error: 'Account type and customer ID are required'});
+                return res.status(400).json({ error: 'Account type and customer ID are required' });
             }
 
             // Auto-generate a unique account number (always server-side)
@@ -41,39 +41,46 @@ class AccountController {
             }
 
             if (!isUnique) {
-                return res.status(500).json({error: 'Unable to generate unique account number'});
+                return res.status(500).json({ error: 'Unable to generate unique account number' });
             }
 
-            const account = await Account.createAccount(accountNumber, accountType, balance, currency, customerId, status);
+            const account = await Account.createAccount({
+                accountNumber,
+                accountType,
+                balance,
+                currency,
+                customerId,
+                status
+            });
             res.status(201).json(account);
         } catch (error) {
             if (error.code === '23505') { // PostgreSQL unique constraint violation
-                return res.status(409).json({error: 'Account number already exists'});
+                return res.status(409).json({ error: 'Account number already exists' });
             }
-            res.status(500).json({error: error.message});
+            res.status(500).json({ error: error.message });
         }
     }
 
     static async getAccount(req, res) {
         try {
-            const {id} = req.params;
+            const { id } = req.params;
             const account = await Account.getAccountById(id);
             if (!account) {
-                return res.status(404).json({error: 'Account not found'});
+                return res.status(404).json({ error: 'Account not found' });
             }
             res.json(account);
         } catch (error) {
-            res.status(500).json({error: error.message});
+            res.status(500).json({ error: error.message });
         }
     }
 
     static async getAccountsByCustomer(req, res) {
         try {
-            const {customerId} = req.params;
+            const { customerId } = req.params;
             const accounts = await Account.getAccountsByCustomerId(customerId);
             res.json(accounts);
         } catch (error) {
-            res.status(500).json({error: error.message});
+            res.status(500).json({ error: error.message });
         }
     }
 
@@ -82,35 +89,35 @@ class AccountController {
             const accounts = await Account.getAllAccounts();
             res.json(accounts);
         } catch (error) {
-            res.status(500).json({error: error.message});
+            res.status(500).json({ error: error.message });
         }
     }
 
     static async updateBalance(req, res) {
         try {
-            const {id} = req.params;
-            const {balance} = req.body;
+            const { id } = req.params;
+            const { balance } = req.body;
             const account = await Account.updateBalance(id, balance);
             if (!account) {
-                return res.status(404).json({error: 'Account not found'});
+                return res.status(404).json({ error: 'Account not found' });
             }
             res.json(account);
         } catch (error) {
-            res.status(500).json({error: error.message});
+            res.status(500).json({ error: error.message });
         }
     }
 
     static async updateAccountStatus(req, res) {
         try {
-            const {id} = req.params;
-            const {status} = req.body;
+            const { id } = req.params;
+            const { status } = req.body;
             const account = await Account.updateAccountStatus(id, status);
             if (!account) {
-                return res.status(404).json({error: 'Account not found'});
+                return res.status(404).json({ error: 'Account not found' });
             }
             res.json(account);
         } catch (error) {
-            res.status(500).json({error: error.message});
+            res.status(500).json({ error: error.message });
         }
     }
 }

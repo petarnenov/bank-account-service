@@ -11,7 +11,17 @@ const pool = new Pool({
 });
 
 class Account {
-    constructor(id, accountNumber, accountType, balance, currency, customerId, status, createdAt, updatedAt) {
+    constructor({
+        id,
+        accountNumber,
+        accountType,
+        balance,
+        currency,
+        customerId,
+        status,
+        createdAt,
+        updatedAt
+    }) {
         this.id = id;
         this.accountNumber = accountNumber;
         this.accountType = accountType;
@@ -23,7 +33,7 @@ class Account {
         this.updatedAt = updatedAt;
     }
 
-    static async createAccount(accountNumber, accountType, balance, currency, customerId, status = 'active') {
+    static async createAccount({ accountNumber, accountType, balance, currency, customerId, status = 'active' }) {
         const query = `
             INSERT INTO accounts (account_number, account_type, balance, currency, customer_id, status)
             VALUES ($1, $2, $3, $4, $5, $6)
@@ -32,7 +42,17 @@ class Account {
         const values = [accountNumber, accountType, balance, currency, customerId, status];
         const result = await pool.query(query, values);
         const { id, account_number, account_type, balance: bal, currency: curr, customer_id, status: accStatus, created_at, updated_at } = result.rows[0];
-        return new Account(id, account_number, account_type, bal, curr, customer_id, accStatus, created_at, updated_at);
+        return new Account({
+            id,
+            accountNumber: account_number,
+            accountType: account_type,
+            balance: bal,
+            currency: curr,
+            customerId: customer_id,
+            status: accStatus,
+            createdAt: created_at,
+            updatedAt: updated_at
+        });
     }
 
     static async getAccountById(id) {
@@ -44,7 +64,17 @@ class Account {
         const result = await pool.query(query, [id]);
         if (result.rows.length === 0) return null;
         const { id: accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at } = result.rows[0];
-        return new Account(accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at);
+        return new Account({
+            id: accountId,
+            accountNumber: account_number,
+            accountType: account_type,
+            balance,
+            currency,
+            customerId: customer_id,
+            status,
+            createdAt: created_at,
+            updatedAt: updated_at
+        });
     }
 
     static async getAccountByNumber(accountNumber) {
@@ -56,7 +86,17 @@ class Account {
         const result = await pool.query(query, [accountNumber]);
         if (result.rows.length === 0) return null;
         const { id, account_number: accNum, account_type, balance, currency, customer_id, status, created_at, updated_at } = result.rows[0];
-        return new Account(id, accNum, account_type, balance, currency, customer_id, status, created_at, updated_at);
+        return new Account({
+            id,
+            accountNumber: accNum,
+            accountType: account_type,
+            balance,
+            currency,
+            customerId: customer_id,
+            status,
+            createdAt: created_at,
+            updatedAt: updated_at
+        });
     }
 
     static async getAccountsByCustomerId(customerId) {
@@ -66,10 +106,17 @@ class Account {
             WHERE customer_id = $1
         `;
         const result = await pool.query(query, [customerId]);
-        return result.rows.map(row => {
-            const { id, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at } = row;
-            return new Account(id, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at);
-        });
+        return result.rows.map(row => new Account({
+            id: row.id,
+            accountNumber: row.account_number,
+            accountType: row.account_type,
+            balance: row.balance,
+            currency: row.currency,
+            customerId: row.customer_id,
+            status: row.status,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at
+        }));
     }
 
     static async updateBalance(id, newBalance) {
@@ -82,7 +129,17 @@ class Account {
         const result = await pool.query(query, [newBalance, id]);
         if (result.rows.length === 0) return null;
         const { id: accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at } = result.rows[0];
-        return new Account(accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at);
+        return new Account({
+            id: accountId,
+            accountNumber: account_number,
+            accountType: account_type,
+            balance,
+            currency,
+            customerId: customer_id,
+            status,
+            createdAt: created_at,
+            updatedAt: updated_at
+        });
     }
 
     static async getAllAccounts() {
@@ -92,10 +149,17 @@ class Account {
             ORDER BY created_at DESC
         `;
         const result = await pool.query(query);
-        return result.rows.map(row => {
-            const { id, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at } = row;
-            return new Account(id, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at);
-        });
+        return result.rows.map(row => new Account({
+            id: row.id,
+            accountNumber: row.account_number,
+            accountType: row.account_type,
+            balance: row.balance,
+            currency: row.currency,
+            customerId: row.customer_id,
+            status: row.status,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at
+        }));
     }
 
     static async updateAccountStatus(id, status) {
@@ -108,7 +172,17 @@ class Account {
         const result = await pool.query(query, [status, id]);
         if (result.rows.length === 0) return null;
         const { id: accountId, account_number, account_type, balance, currency, customer_id, status: accountStatus, created_at, updated_at } = result.rows[0];
-        return new Account(accountId, account_number, account_type, balance, currency, customer_id, accountStatus, created_at, updated_at);
+        return new Account({
+            id: accountId,
+            accountNumber: account_number,
+            accountType: account_type,
+            balance,
+            currency,
+            customerId: customer_id,
+            status: accountStatus,
+            createdAt: created_at,
+            updatedAt: updated_at
+        });
     }
 }
 
