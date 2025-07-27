@@ -148,6 +148,8 @@ router.post('/chat', async (req, res) => {
 				const result = await toolDef.execute(args);
 				// Prepare a summary for the AI if needed
 				let toolResult = result;
+				//log result
+				console.log("ai tool result is: ", result)
 				if (Array.isArray(result)) {
 					// For list results, provide a preview and total
 					toolResult = {
