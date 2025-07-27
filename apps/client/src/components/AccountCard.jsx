@@ -1,8 +1,12 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import AccountService from '../services/accountService';
+import Modal from './Modal';
 
-const AccountCard = ({account, onClick}) => {
+
+const AccountCard = ({ account, onClick }) => {
     const [isUpdating, setIsUpdating] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
 
     const formatCurrency = (amount, currency) => {
         return new Intl.NumberFormat('en-US', {
@@ -26,7 +30,8 @@ const AccountCard = ({account, onClick}) => {
             window.location.reload();
         } catch (error) {
             console.error('Failed to update account status:', error);
-            alert('Failed to update account status. Please try again.');
+            setModalMessage('Failed to update account status. Please try again.');
+            setModalOpen(true);
             setIsUpdating(false);
         }
     };
@@ -39,29 +44,39 @@ const AccountCard = ({account, onClick}) => {
     };
 
     return (
-        <div className="account-card" onClick={handleCardClick}>
-            <div className="account-header">
-                <h3>{account.accountType.toUpperCase()}</h3>
-                <div className="status-dropdown" onClick={(e) => e.stopPropagation()}>
-                    <select
-                        value={account.status || 'active'}
-                        onChange={handleStatusChange}
-                        disabled={isUpdating}
-                        className={`status-select ${account.status || 'active'}`}
-                    >
-                        <option value="active">ACTIVE</option>
-                        <option value="inactive">INACTIVE</option>
-                        <option value="frozen">FROZEN</option>
-                    </select>
+        <>
+            <div className="account-card" onClick={handleCardClick}>
+                <div className="account-header">
+                    <h3>{account.accountType.toUpperCase()}</h3>
+                    <div className="status-dropdown" onClick={(e) => e.stopPropagation()}>
+                        <select
+                            value={account.status || 'active'}
+                            onChange={handleStatusChange}
+                            disabled={isUpdating}
+                            className={`status-select ${account.status || 'active'}`}
+                        >
+                            <option value="active">ACTIVE</option>
+                            <option value="inactive">INACTIVE</option>
+                            <option value="frozen">FROZEN</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="account-number">
+                    Account: {account.accountNumber}
+                </div>
+                <div className="account-balance">
+                    {formatCurrency(account.balance, account.currency)}
                 </div>
             </div>
-            <div className="account-number">
-                Account: {account.accountNumber}
-            </div>
-            <div className="account-balance">
-                {formatCurrency(account.balance, account.currency)}
-            </div>
-        </div>
+            <Modal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                title="Error"
+                actions={<button onClick={() => setModalOpen(false)}>Close</button>}
+            >
+                {modalMessage}
+            </Modal>
+        </>
     );
 };
 

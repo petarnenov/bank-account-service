@@ -8,7 +8,7 @@ import AccountService from '../services/accountService';
 
 
 const Dashboard = () => {
-    const { user, loading: authLoading } = useAuth();
+    const { user } = useAuth();
     const [aiCollapsed, setAiCollapsed] = useState(true);
     const [accounts, setAccounts] = useState([]);
     const [filteredAccounts, setFilteredAccounts] = useState([]);
