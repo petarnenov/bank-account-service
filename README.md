@@ -4,7 +4,7 @@ A complete bank account management system built with React.js, Node.js, Express,
 
 ## ✅ Current Status: **WORKING**
 
-- ✅ Server running on `http://localhost:5000`
+- ✅ Server running on `http://localhost:5001`
 - ✅ Client running on `http://localhost:3000`
 - ✅ Database connected to Supabase
 - ✅ API endpoints working
@@ -53,15 +53,15 @@ account-service/
 npm run dev
 
 # Or start individually:
-npm run dev:server  # Server on port 5000
+npm run dev:server  # Server on port 5001
 npm run dev:client  # Client on port 3000
 ```
 
 ## 🌐 Access Points
 
 - **Frontend**: http://localhost:3000
-- **API**: http://localhost:5000
-- **Health Check**: http://localhost:5000/health
+- **API**: http://localhost:5001
+- **Health Check**: http://localhost:5001/health
 
 ## 📊 Database
 
@@ -101,9 +101,9 @@ node test-supabase-connection.js
 node test-api-connectivity.js
 
 # Test individual endpoints
-curl http://localhost:5000/health
-curl http://localhost:5000/api/accounts
-curl http://localhost:5000/api/customers
+curl http://localhost:5001/health
+curl http://localhost:5001/api/accounts
+curl http://localhost:5001/api/customers
 ```
 
 ## 🎯 Features
@@ -169,7 +169,7 @@ git push heroku main
 ## 📋 Development Notes
 
 ### Port Configuration
-- Server: 5000 (configurable via PORT env var)
+- Server: 5001 (configurable via PORT env var)
 - Client: 3000 (React default)
 
 ### Database Connection
