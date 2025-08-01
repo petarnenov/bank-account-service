@@ -1,8 +1,12 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import CustomerService from '../services/customerService';
 import useAccountFormStore from '../store/useAccountFormStore';
 
 export const useAccountForm = (initialData = {}, isCustomerPreSelected = false) => {
+    // Use ref to track if we've initialized to prevent unnecessary resets
+    const isInitialized = useRef(false);
+    const initialDataRef = useRef(initialData);
+
     // Single store subscription for better performance
     const {
         formData,
@@ -20,23 +24,28 @@ export const useAccountForm = (initialData = {}, isCustomerPreSelected = false) 
         setShowCustomerDropdown,
         selectCustomer,
         handleKeyboardNavigation,
-        handleCustomerInputBlur
+        handleCustomerInputBlur,
+        resetFormData
     } = useAccountFormStore();
 
-    // Initialize form data when component mounts or initialData changes
+    // Initialize form data only once on mount with the initial data
     useEffect(() => {
-        useAccountFormStore.getState().resetFormData(initialData);
-    }, [initialData]);
+        if (!isInitialized.current) {
+            resetFormData(initialDataRef.current);
+            isInitialized.current = true;
+        }
+    }, [resetFormData]); // Include resetFormData as dependency
 
     useEffect(() => {
         const fetchCustomers = async () => {
             try {
                 const data = await CustomerService.getAllCustomers();
-                console.log('Fetched customers:', data); // Debug log
-                useAccountFormStore.getState().setCustomers(data);
+                // Ensure we always have an array, even if data is undefined/null
+                const safeData = Array.isArray(data) ? data : [];
+                useAccountFormStore.getState().setCustomers(safeData);
             } catch (err) {
-                console.error('Error fetching customers:', err); // Debug log
                 useAccountFormStore.getState().setError('Failed to load customers: ' + err.message);
+                useAccountFormStore.getState().setCustomers([]); // Set empty array on error
                 useAccountFormStore.getState().setLoadingCustomers(false);
             }
         };
@@ -46,21 +55,27 @@ export const useAccountForm = (initialData = {}, isCustomerPreSelected = false) 
 
     // Initialize customer search field if there's initial customer data
     useEffect(() => {
-        useAccountFormStore.getState().initializeCustomerSearch();
-    }, [formData.customerId, customers.length, customerSearch]);
+        if (customers.length > 0) {
+            useAccountFormStore.getState().initializeCustomerSearch();
+        }
+    }, [formData.customerId, customers.length]);
 
     const handleChange = (e) => {
         const {name, value} = e.target;
-        // Convert numeric fields to numbers
+        // Convert numeric fields to numbers, but preserve empty strings
         let processedValue = value;
         if (name === 'balance') {
-            processedValue = value === '' ? 0 : parseFloat(value) || 0;
+            // Only convert to number if there's actually a value
+            if (value === '') {
+                processedValue = ''; // Keep empty string for empty input
+            } else {
+                processedValue = parseFloat(value) || 0;
+            }
         }
         updateFormField(name, processedValue);
     };
 
     const handleCustomerSearchChange = (e) => {
-        console.log('Customer search changed:', e.target.value); // Debug log
         setCustomerSearch(e.target.value);
         setShowCustomerDropdown(true);
         // Reset selected index and clear customer ID when typing
@@ -101,6 +116,7 @@ export const useAccountForm = (initialData = {}, isCustomerPreSelected = false) 
     return {
         // State for rendering
         formData,
+        customers,
         loadingCustomers,
         error,
         customerSearch,
