@@ -1,4 +1,4 @@
-const { Pool } = require('pg');
+const {Pool} = require('pg');
 
 // Load environment variables
 require('dotenv').config();
@@ -25,7 +25,7 @@ class Account {
         this.id = id;
         this.accountNumber = accountNumber;
         this.accountType = accountType;
-        this.balance = balance;
+        this.balance = parseFloat(balance) || 0;
         this.currency = currency;
         this.customerId = customerId;
         this.status = status;
@@ -40,7 +40,7 @@ class Account {
         return result.rows[0].customer_id;
     }
 
-    static async createAccount({ accountNumber, accountType, balance, currency, customerId, status = 'active' }) {
+    static async createAccount({accountNumber, accountType, balance, currency, customerId, status = 'active'}) {
         const query = `
             INSERT INTO accounts (account_number, account_type, balance, currency, customer_id, status)
             VALUES ($1, $2, $3, $4, $5, $6)
@@ -48,7 +48,7 @@ class Account {
         `;
         const values = [accountNumber, accountType, balance, currency, customerId, status];
         const result = await pool.query(query, values);
-        const { id, account_number, account_type, balance: bal, currency: curr, customer_id, status: accStatus, created_at, updated_at } = result.rows[0];
+        const {id, account_number, account_type, balance: bal, currency: curr, customer_id, status: accStatus, created_at, updated_at} = result.rows[0];
         return new Account({
             id,
             accountNumber: account_number,
@@ -70,7 +70,7 @@ class Account {
         `;
         const result = await pool.query(query, [id]);
         if (result.rows.length === 0) return null;
-        const { id: accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at } = result.rows[0];
+        const {id: accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at} = result.rows[0];
         return new Account({
             id: accountId,
             accountNumber: account_number,
@@ -92,7 +92,7 @@ class Account {
         `;
         const result = await pool.query(query, [accountNumber]);
         if (result.rows.length === 0) return null;
-        const { id, account_number: accNum, account_type, balance, currency, customer_id, status, created_at, updated_at } = result.rows[0];
+        const {id, account_number: accNum, account_type, balance, currency, customer_id, status, created_at, updated_at} = result.rows[0];
         return new Account({
             id,
             accountNumber: accNum,
@@ -135,7 +135,7 @@ class Account {
         `;
         const result = await pool.query(query, [newBalance, id]);
         if (result.rows.length === 0) return null;
-        const { id: accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at } = result.rows[0];
+        const {id: accountId, account_number, account_type, balance, currency, customer_id, status, created_at, updated_at} = result.rows[0];
         return new Account({
             id: accountId,
             accountNumber: account_number,
@@ -178,7 +178,7 @@ class Account {
         `;
         const result = await pool.query(query, [status, id]);
         if (result.rows.length === 0) return null;
-        const { id: accountId, account_number, account_type, balance, currency, customer_id, status: accountStatus, created_at, updated_at } = result.rows[0];
+        const {id: accountId, account_number, account_type, balance, currency, customer_id, status: accountStatus, created_at, updated_at} = result.rows[0];
         return new Account({
             id: accountId,
             accountNumber: account_number,

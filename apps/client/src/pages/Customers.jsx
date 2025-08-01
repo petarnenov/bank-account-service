@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, {useState, useEffect} from 'react';
+import {Link} from 'react-router-dom';
 import CustomerService from '../services/customerService';
 import AccountService from '../services/accountService';
 import Modal from '../components/Modal';
@@ -58,7 +58,10 @@ const Customers = () => {
     // Helper: get total balance for a customer
     const getTotalBalance = (customerId) => {
         const accounts = customerAccounts[customerId] || [];
-        return accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+        return accounts.reduce((sum, acc) => {
+            const balance = parseFloat(acc.balance) || 0;
+            return sum + balance;
+        }, 0);
     };
 
     // Helper: get account summary for a customer
@@ -107,10 +110,10 @@ const Customers = () => {
         if (newStatus === currentStatus) return;
         try {
             setEditingStatus(customerId);
-            await CustomerService.updateCustomer(customerId, { status: newStatus });
+            await CustomerService.updateCustomer(customerId, {status: newStatus});
             // Update status in local state
-            setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, status: newStatus } : c));
-            setFilteredCustomers(prev => prev.map(c => c.id === customerId ? { ...c, status: newStatus } : c));
+            setCustomers(prev => prev.map(c => c.id === customerId ? {...c, status: newStatus} : c));
+            setFilteredCustomers(prev => prev.map(c => c.id === customerId ? {...c, status: newStatus} : c));
             setEditingStatus(null);
         } catch (err) {
             setModalMessage('Failed to update customer status. Please try again.');

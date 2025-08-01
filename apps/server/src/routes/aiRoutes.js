@@ -198,7 +198,7 @@ router.post('/chat', async (req, res) => {
 		conversationMessages.push({ role: 'user', content: message });
 
 		let toolCallResults = [];
-		let maxIterations = 5; // Prevent infinite loops
+		let maxIterations = 10; // Prevent infinite loops
 		let iteration = 0;
 
 		while (iteration < maxIterations) {

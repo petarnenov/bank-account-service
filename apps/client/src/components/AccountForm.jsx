@@ -1,139 +1,85 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect} from 'react';
 import CustomerService from '../services/customerService';
+import useAccountFormStore from '../store/useAccountFormStore';
 
-const AccountForm = ({ onSubmit, initialData = {}, isCustomerPreSelected = false }) => {
-    const [formData, setFormData] = useState({
-        accountType: initialData.accountType || 'checking',
-        balance: initialData.balance || 0,
-        currency: initialData.currency || 'USD',
-        customerId: initialData.customerId || '',
-        status: initialData.status || 'active'
-    });
+const AccountForm = ({onSubmit, initialData = {}, isCustomerPreSelected = false}) => {
+    // Split store access to avoid recreating dependencies
+    const formData = useAccountFormStore(state => state.formData);
+    const customers = useAccountFormStore(state => state.customers);
+    const filteredCustomers = useAccountFormStore(state => state.filteredCustomers);
+    const loadingCustomers = useAccountFormStore(state => state.loadingCustomers);
+    const error = useAccountFormStore(state => state.error);
+    const customerSearch = useAccountFormStore(state => state.customerSearch);
+    const showCustomerDropdown = useAccountFormStore(state => state.showCustomerDropdown);
+    const selectedCustomerIndex = useAccountFormStore(state => state.selectedCustomerIndex);
 
-    const [customers, setCustomers] = useState([]);
-    const [loadingCustomers, setLoadingCustomers] = useState(true);
-    const [error, setError] = useState('');
-    const [customerSearch, setCustomerSearch] = useState('');
-    const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
-    const [filteredCustomers, setFilteredCustomers] = useState([]);
-    const [selectedCustomerIndex, setSelectedCustomerIndex] = useState(-1);
+    // Actions - these are stable references in Zustand
+    const updateFormField = useAccountFormStore(state => state.updateFormField);
+    const setError = useAccountFormStore(state => state.setError);
+    const setCustomerSearch = useAccountFormStore(state => state.setCustomerSearch);
+    const setShowCustomerDropdown = useAccountFormStore(state => state.setShowCustomerDropdown);
+    const selectCustomer = useAccountFormStore(state => state.selectCustomer);
+    const handleKeyboardNavigation = useAccountFormStore(state => state.handleKeyboardNavigation);
+    const handleCustomerInputBlur = useAccountFormStore(state => state.handleCustomerInputBlur);
+
+    // Initialize form data when component mounts or initialData changes
+    useEffect(() => {
+        useAccountFormStore.getState().resetFormData(initialData);
+    }, [initialData]);
 
     useEffect(() => {
         const fetchCustomers = async () => {
             try {
                 const data = await CustomerService.getAllCustomers();
-                setCustomers(data);
+                console.log('Fetched customers:', data); // Debug log
+                useAccountFormStore.getState().setCustomers(data);
             } catch (err) {
-                setError('Failed to load customers: ' + err.message);
-            } finally {
-                setLoadingCustomers(false);
+                console.error('Error fetching customers:', err); // Debug log
+                useAccountFormStore.getState().setError('Failed to load customers: ' + err.message);
+                useAccountFormStore.getState().setLoadingCustomers(false);
             }
         };
 
         fetchCustomers();
     }, []);
 
-    // Filter customers based on search input
-    useEffect(() => {
-        if (!customerSearch) {
-            setFilteredCustomers(customers);
-        } else {
-            const filtered = customers.filter(customer => {
-                const searchTerm = customerSearch.toLowerCase();
-                return (
-                    customer.firstName.toLowerCase().includes(searchTerm) ||
-                    customer.lastName.toLowerCase().includes(searchTerm) ||
-                    customer.email.toLowerCase().includes(searchTerm) ||
-                    `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(searchTerm)
-                );
-            });
-            setFilteredCustomers(filtered);
-        }
-    }, [customers, customerSearch]);
-
     // Initialize customer search field if there's initial customer data
     useEffect(() => {
-        if (formData.customerId && customers.length > 0 && !customerSearch) {
-            const selectedCustomer = customers.find(c => c.id === formData.customerId);
-            if (selectedCustomer) {
-                setCustomerSearch(`${selectedCustomer.firstName} ${selectedCustomer.lastName} (${selectedCustomer.email})`);
-            } else {
-                // If preselected customerId is not found, clear the field for typeahead
-                setFormData(prev => ({ ...prev, customerId: '' }));
-                setCustomerSearch('');
-            }
-        }
-    }, [formData.customerId, customers, customerSearch]);
+        useAccountFormStore.getState().initializeCustomerSearch();
+    }, [formData.customerId, customers.length, customerSearch]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        const {name, value} = e.target;
+        // Convert numeric fields to numbers
+        let processedValue = value;
+        if (name === 'balance') {
+            processedValue = value === '' ? 0 : parseFloat(value) || 0;
+        }
+        updateFormField(name, processedValue);
     };
 
     const handleCustomerSearchChange = (e) => {
+        console.log('Customer search changed:', e.target.value); // Debug log
         setCustomerSearch(e.target.value);
         setShowCustomerDropdown(true);
-        setSelectedCustomerIndex(-1);
-    };
-
-    const handleCustomerSelect = (customer) => {
-        setFormData(prev => ({
-            ...prev,
-            customerId: customer.id
-        }));
-        setCustomerSearch(`${customer.firstName} ${customer.lastName} (${customer.email})`);
-        setShowCustomerDropdown(false);
-        setSelectedCustomerIndex(-1);
+        // Reset selected index and clear customer ID when typing
+        useAccountFormStore.getState().setSelectedCustomerIndex(-1);
+        if (e.target.value !== customerSearch) {
+            updateFormField('customerId', '');
+        }
     };
 
     const handleCustomerInputFocus = () => {
-        setShowCustomerDropdown(true);
-    };
-
-    const handleCustomerInputBlur = () => {
-        // Delay hiding the dropdown to allow for clicks
-        setTimeout(() => {
-            setShowCustomerDropdown(false);
-            setSelectedCustomerIndex(-1);
-
-            // If no customer is selected, clear the search field
-            if (!formData.customerId) {
-                setCustomerSearch('');
-            }
-        }, 200);
+        if (!isCustomerPreSelected) {
+            setShowCustomerDropdown(true);
+        }
     };
 
     const handleCustomerKeyDown = (e) => {
-        if (!showCustomerDropdown || filteredCustomers.length === 0) return;
-
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                setSelectedCustomerIndex(prev =>
-                    prev < filteredCustomers.length - 1 ? prev + 1 : 0
-                );
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                setSelectedCustomerIndex(prev =>
-                    prev > 0 ? prev - 1 : filteredCustomers.length - 1
-                );
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (selectedCustomerIndex >= 0) {
-                    handleCustomerSelect(filteredCustomers[selectedCustomerIndex]);
-                }
-                break;
-            case 'Escape':
-                setShowCustomerDropdown(false);
-                setSelectedCustomerIndex(-1);
-                break;
-            default:
-                break;
+        // Only prevent default for navigation keys
+        if (['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(e.key)) {
+            e.preventDefault();
+            handleKeyboardNavigation(e.key);
         }
     };
 
@@ -242,7 +188,7 @@ const AccountForm = ({ onSubmit, initialData = {}, isCustomerPreSelected = false
                                     <div
                                         key={customer.id}
                                         className={`customer-option ${index === selectedCustomerIndex ? 'selected' : ''}`}
-                                        onClick={() => handleCustomerSelect(customer)}
+                                        onClick={() => selectCustomer(customer)}
                                     >
                                         <div className="customer-name">
                                             {customer.firstName} {customer.lastName}
