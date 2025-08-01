@@ -1,7 +1,10 @@
+
 const express = require('express');
 const AccountController = require('../controllers/accountController');
 
 const router = express.Router();
+// Get account by account number
+router.get('/number/:accountNumber', AccountController.getAccountByNumber);
 
 // Get all accounts
 router.get('/', AccountController.getAllAccounts);

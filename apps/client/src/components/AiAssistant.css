@@ -1,3 +1,24 @@
+/* Account Info Card Styles */
+.ai-account-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 16px 20px;
+  margin: 18px 0 8px 0;
+  border: 1px solid #e0e0e0;
+  max-width: 350px;
+  font-size: 1rem;
+}
+.ai-account-card strong {
+  display: block;
+  font-size: 1.1em;
+  margin-bottom: 8px;
+  color: #2d3a4a;
+}
+.ai-account-card div {
+  margin-bottom: 4px;
+  color: #333;
+}
 .ai-assistant {
   position: fixed;
   right: 32px;

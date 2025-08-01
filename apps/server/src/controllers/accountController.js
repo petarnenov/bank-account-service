@@ -1,3 +1,4 @@
+
 const Account = require('../models/Account');
 
 class AccountController {
@@ -6,11 +7,22 @@ class AccountController {
         // Use a shorter timestamp (last 8 digits) + 12 random characters = exactly 20 chars
         const shortTimestamp = Date.now().toString().slice(-8);
         const randomPart = Math.random().toString(36).substring(2, 14).toUpperCase().padEnd(12, '0');
-
         const accountNumber = shortTimestamp + randomPart;
-
         // Ensure exactly 20 characters
         return accountNumber.substring(0, 20);
+    }
+
+    static async getAccountByNumber(req, res) {
+        try {
+            const { accountNumber } = req.params;
+            const account = await Account.getAccountByNumber(accountNumber);
+            if (!account) {
+                return res.status(404).json({ error: 'Account not found' });
+            }
+            res.json(account);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
 
     static async createAccount(req, res) {

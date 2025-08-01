@@ -73,7 +73,16 @@ const getAccountsByCustomerTool = tool({
 		required: ['customerId']
 	},
 	execute: async ({ customerId }) => {
-		return await Account.getAccountsByCustomerId(customerId);
+		try {
+			const accounts = await Account.getAccountsByCustomerId(customerId);
+			if (!accounts || accounts.length === 0) {
+				return { error: `No accounts found for customer ID: ${customerId}`, accounts: [] };
+			}
+			return { accounts, total: accounts.length };
+		} catch (error) {
+			console.error('Error fetching accounts by customer:', error);
+			return { error: `Failed to fetch accounts for customer ${customerId}: ${error.message}`, accounts: [] };
+		}
 	}
 });
 
@@ -164,104 +173,119 @@ router.post('/chat', async (req, res) => {
 	const { message, history } = req.body;
 	if (!message) return res.status(400).json({ error: 'Message is required' });
 	try {
-		// Step 1: Send user message to OpenAI with tool definitions
 		// System prompt with tool descriptions
 		const toolDescriptions = [
 			'Available tools:',
 			'- spellChecker: Correct English spelling and grammar.',
 			'- getCurrentDate: Get today\'s date.',
-			'- getAccountsByCustomer: List all accounts for a customer.',
+			'- getAccountsByCustomer: List all accounts for a customer ID (not name).',
 			'- getAllAccounts: List all bank accounts.',
 			'- getCustomerByAccount: Get customer details by account number.',
-			'- searchCustomerByName: Search customers by name.'
+			'- searchCustomerByName: Search customers by name to get their customer ID.'
 		].join(' ');
-		let messages = [
-			{ role: 'system', content: `You are a helpful assistant for a bank account dashboard. ${toolDescriptions}` }
+
+		let conversationMessages = [
+			{ role: 'system', content: `You are a helpful assistant for a bank account dashboard. ${toolDescriptions} IMPORTANT: Use multiple tools in sequence as needed to fully answer questions. For example, when asked about accounts for a customer by name, first use searchCustomerByName to find the customer ID, then use getAccountsByCustomer with that customer ID.` }
 		];
+
 		if (Array.isArray(history)) {
-			messages = messages.concat(
+			conversationMessages = conversationMessages.concat(
 				history.filter(
 					m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string'
 				).map(m => ({ role: m.role, content: m.content }))
 			);
 		}
-		messages.push({ role: 'user', content: message });
-		const initial = await openai.chat.completions.create({
-			model: 'gpt-3.5-turbo-1106',
-			messages,
-			tools: openAITools,
-			tool_choice: 'auto',
-			max_tokens: 150
-		});
-		const choice = initial.choices[0];
-		const toolCall = choice.message.tool_calls && choice.message.tool_calls[0];
+		conversationMessages.push({ role: 'user', content: message });
 
-		if (toolCall && toolCall.function) {
-			const toolDef = toolMap[toolCall.function.name];
-			if (toolDef && typeof toolDef.execute === 'function') {
-				let args = {};
-				try { args = JSON.parse(toolCall.function.arguments); } catch { }
-				const result = await toolDef.execute(args);
-				let toolResult = result;
-				if (Array.isArray(result)) {
-					toolResult = {
-						total: result.length,
-						preview: result
-					};
-				}
-				const assistantMsg = {
-					role: 'assistant',
-					content: null,
-					tool_calls: choice.message.tool_calls
-				};
-				let followupMessages = [
-					{ role: 'system', content: 'You are a helpful assistant for a bank account dashboard.' }
-				];
-				if (Array.isArray(history)) {
-					followupMessages = followupMessages.concat(
-						history.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').map(m => ({ role: m.role, content: m.content }))
-					);
-				}
-				followupMessages.push(
-					{ role: 'user', content: message },
-					assistantMsg,
-					{
+		let toolCallResults = [];
+		let maxIterations = 5; // Prevent infinite loops
+		let iteration = 0;
+
+		while (iteration < maxIterations) {
+			const response = await openai.chat.completions.create({
+				model: 'gpt-3.5-turbo-1106',
+				messages: conversationMessages,
+				tools: openAITools,
+				tool_choice: 'auto',
+				max_tokens: 150
+			});
+
+			const choice = response.choices[0];
+			const toolCalls = choice.message.tool_calls;
+
+			if (!toolCalls || toolCalls.length === 0) {
+				// No more tool calls needed, return the final response
+				const aiMessage = choice.message.content;
+				return res.json({
+					aiMessage,
+					toolResults: toolCallResults.length > 0 ? toolCallResults : undefined
+				});
+			}
+
+			// Add the assistant's message with tool calls to conversation
+			conversationMessages.push({
+				role: 'assistant',
+				content: choice.message.content,
+				tool_calls: toolCalls
+			});
+
+			// Execute all tool calls
+			for (const toolCall of toolCalls) {
+				const toolDef = toolMap[toolCall.function.name];
+				if (toolDef && typeof toolDef.execute === 'function') {
+					let args = {};
+					try {
+						args = JSON.parse(toolCall.function.arguments);
+					} catch (error) {
+						console.error('Error parsing tool arguments:', error);
+					}
+
+					const result = await toolDef.execute(args);
+					let toolResult = result;
+
+					// Format results consistently
+					if (Array.isArray(result)) {
+						toolResult = {
+							total: result.length,
+							data: result
+						};
+					} else if (result && result.accounts && Array.isArray(result.accounts)) {
+						toolResult = {
+							total: result.total || result.accounts.length,
+							accounts: result.accounts,
+							error: result.error
+						};
+					}
+
+					toolCallResults.push({
+						tool: toolCall.function.name,
+						args: args,
+						result: toolResult
+					});
+
+					// Add tool result to conversation
+					conversationMessages.push({
 						role: 'tool',
 						tool_call_id: toolCall.id,
 						name: toolCall.function.name,
 						content: JSON.stringify(toolResult)
-					}
-				);
-				const followup = await openai.chat.completions.create({
-					model: 'gpt-3.5-turbo-1106',
-					messages: followupMessages,
-					max_tokens: 200
-				});
-				const aiMessage = followup.choices[0].message.content;
-				res.json({ aiMessage, result: toolResult });
-				return;
+					});
+				}
 			}
-		} else {
-			// No tool call, send the full chat history to OpenAI for a direct response
-			let directMessages = [
-				{ role: 'system', content: 'You are a helpful assistant for a bank account dashboard.' }
-			];
-			if (Array.isArray(history)) {
-				directMessages = directMessages.concat(
-					history.filter(
-						m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string'
-					).map(m => ({ role: m.role, content: m.content }))
-				);
-			}
-			directMessages.push({ role: 'user', content: message });
-			const direct = await openai.chat.completions.create({
-				model: 'gpt-3.5-turbo-1106',
-				messages: directMessages,
-				max_tokens: 200
-			});
-			const aiMessage = direct.choices[0].message.content;
-			res.json({ aiMessage });
+
+			iteration++;
 		}
+
+		// If we reach max iterations, return what we have
+		const finalResponse = await openai.chat.completions.create({
+			model: 'gpt-3.5-turbo-1106',
+			messages: conversationMessages,
+			max_tokens: 200
+		});
+
+		const finalMessage = finalResponse.choices[0].message.content;
+		res.json({ aiMessage: finalMessage, toolResults: toolCallResults });
+
 	} catch (err) {
 		console.error('AI Assistant error:', err);
 		res.status(500).json({ error: err.message });
