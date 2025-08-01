@@ -268,7 +268,7 @@ const Customers = () => {
                                         ) : (
                                             <div className="no-accounts-notice">
                                                 <span>No accounts found</span>
-                                                <Link to="/create-account" className="create-account-link">Create Account</Link>
+                                                <Link to={`/create-account?customerId=${customer.id}`} className="create-account-link">Create Account</Link>
                                             </div>
                                         )}
                                     </div>
