@@ -10,7 +10,7 @@
   "scripts": {
     "install:all": "npm install",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:client": "npm run start --workspace=apps/client",
+    "dev:client": "PORT=3000 npm run start --workspace=apps/client",
     "dev:server": "npm run dev --workspace=apps/server",
     "build": "npm run build --workspace=apps/client",
     "start": "npm run start --workspace=apps/server",
