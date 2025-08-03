@@ -62,7 +62,7 @@ tmp/
 run-*.js
 test-*.js
 verify-*.js
-check-*.js
+//check-*.js
 create-default-*.js
 
 # Backup files
